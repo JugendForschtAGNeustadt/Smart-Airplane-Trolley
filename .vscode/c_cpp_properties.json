@@ -9,16 +9,6 @@
                 "c:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries",
                 "c:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\standard",
                 "c:\\Program Files (x86)\\Arduino\\libraries",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Accelerometer_ADXL345-master",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Accelerometer_MMA7660-master",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Adafruit_Unified_Sensor",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Arduino_Commander",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Blynk",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Cayenne",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\CayenneMQTT",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\DHT_sensor_library",
-                "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Grove_LCD_RGB_Backlight-master",
                 "${workspaceRoot}"
             ],
             "browse": {
@@ -31,16 +21,6 @@
                     "c:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries",
                     "c:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\standard",
                     "c:\\Program Files (x86)\\Arduino\\libraries",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Accelerometer_ADXL345-master",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Accelerometer_MMA7660-master",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Adafruit_Unified_Sensor",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Arduino_Commander",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Blynk",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Cayenne",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\CayenneMQTT",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\DHT_sensor_library",
-                    "c:\\Users\\filip.wozniak\\Documents\\Arduino\\libraries\\Grove_LCD_RGB_Backlight-master",
                     "${workspaceRoot}"
                 ]
             },

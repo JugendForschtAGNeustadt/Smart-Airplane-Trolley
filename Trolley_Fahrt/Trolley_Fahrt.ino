@@ -1,6 +1,3 @@
-#include <Arduino.h>
-#include <HardwareSerial.h>
-
 //Konstanten: Pins
 const int MOTOR_VL = 10;
 const int MOTOR_VR = 11;
