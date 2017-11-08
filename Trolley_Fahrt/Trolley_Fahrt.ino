@@ -161,7 +161,7 @@ else
 
 }
 
-//**Hilfsfunktionen für Motoren test
+//**Hilfsfunktionen für Motoren test2
 
 //** Hilfsfunction: GetDistance - Ultraschalsensor Auslesen und die Entfernung in cm Ermitteln
 int GetDistance(int trigPin, int echoPin)
