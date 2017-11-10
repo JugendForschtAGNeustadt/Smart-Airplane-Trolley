@@ -48,10 +48,7 @@ pinMode (HINDERIS_3_TRIG,OUTPUT);
 pinMode (HINDERIS_3_ECHO,INPUT);
 
 // Motoren Ausschalten 
-digitalWrite (MOTOR_VR,HIGH);
-digitalWrite (MOTOR_VL,HIGH);
-digitalWrite (MOTOR_HR,HIGH);
-digitalWrite (MOTOR_HL,HIGH);
+Motoren_Aus();
 
 //Serial Setup
 Serial.begin(9600);
@@ -91,8 +88,7 @@ if (Hindernis_Entfernung < 20)
 if (IstBedient)
 {
   Serial.println("Wird bedient");
-     digitalWrite (MOTOR_VR,HIGH);
-     digitalWrite (MOTOR_VL,HIGH);
+  Motoren_Aus();
   
 }
 
@@ -100,13 +96,14 @@ if (IstBedient)
 //** Aktion: Hindernis
 //** Priorität: 2
 else if (IstHindernis)
-{  Serial.println("Hindernis: " + String(Hindernis_Entfernung));
-  digitalWrite (MOTOR_VR,HIGH);
-     digitalWrite (MOTOR_VL,HIGH);
-if (Hindernis_Entfernung > 30)
-{
-  IstHindernis = false;
-}}
+{  
+  Serial.println("Hindernis: " + String(Hindernis_Entfernung));
+  Motoren_Aus();
+  if (Hindernis_Entfernung > 30)
+  {
+    IstHindernis = false;
+  }
+}
 else 
 {
 
@@ -118,14 +115,14 @@ else
     if (ReedVal==0)
     {
       Serial.println("Fahrt");
-      digitalWrite (MOTOR_VR,LOW);
-      digitalWrite (MOTOR_VL,LOW);
+      Motoren_Vorwaerts();
     }
     else
     {
       Serial.println("Fahrt Ende");
-      digitalWrite (MOTOR_VR,HIGH);
-      digitalWrite (MOTOR_VL,HIGH);
+      
+      Motoren_Aus();
+      
       IstFahrt=false;
       IstWarten=true;
       WartenEndeZeit=millis()+10000;
@@ -148,17 +145,44 @@ else
      IstFahrt=true;
      while (digitalRead (REED_IN)==1)
      {
-      digitalWrite (MOTOR_VR,LOW);
-      digitalWrite (MOTOR_VL,LOW); 
+      Motoren_Vorwaerts(); 
      }
-      digitalWrite (MOTOR_VR,HIGH);
-      digitalWrite (MOTOR_VL,HIGH);
+      Motoren_Aus();
      }
     }
   }
 }
 
 
+}
+
+//**Hilfsfunktionen für Motoren
+
+void Motoren_Aus()
+{
+digitalWrite (MOTOR_VR,HIGH);
+digitalWrite (MOTOR_VL,HIGH);
+digitalWrite (MOTOR_HR,HIGH);
+digitalWrite (MOTOR_HL,HIGH);
+}
+
+void Motoren_Vorwaerts()
+{
+ digitalWrite (MOTOR_VR,LOW);
+ digitalWrite (MOTOR_VL,LOW);
+ 
+ digitalWrite (MOTOR_HR,HIGH);
+ digitalWrite (MOTOR_HL,HIGH);
+}
+
+
+void Motoren_Rueckwaerts()
+{
+ digitalWrite (MOTOR_HR,LOW);
+ digitalWrite (MOTOR_HL,LOW);
+ 
+ digitalWrite (MOTOR_VR,HIGH);
+ digitalWrite (MOTOR_VL,HIGH);
 }
 
 //** Hilfsfunction: GetDistance - Ultraschalsensor Auslesen und die Entfernung in cm Ermitteln

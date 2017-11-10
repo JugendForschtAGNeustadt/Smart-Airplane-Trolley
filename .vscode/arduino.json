@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:uno",
+    "port": "COM3",
+    "sketch": "Trolley_Fahrt\\Trolley_Fahrt.ino",
+    "output": "../build"
+}
