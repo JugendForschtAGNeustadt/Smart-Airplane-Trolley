@@ -1,4 +1,5 @@
 #include <SoftwareSerial.h>
+
 char junk;
 String inputString = "";
 SoftwareSerial MeinSerial(10, 11); //RX TX
