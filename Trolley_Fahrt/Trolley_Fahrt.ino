@@ -1,8 +1,6 @@
-#include <SoftwareSerial.h>
-
 //Konstanten: Pins
-const int MOTOR_VL = 10; //10
-const int MOTOR_VR = 11; //11
+const int MOTOR_VL = 10; 
+const int MOTOR_VR = 11; 
 const int MOTOR_HL = 12;
 const int MOTOR_HR = 13;
 
@@ -14,18 +12,18 @@ const int HINDERIS_2_TRIG = 6;
 const int HINDERIS_2_ECHO = 7;
 const int HINDERIS_3_TRIG = 2;
 const int HINDERIS_3_ECHO = 3;
-//SoftwareSerial MeinSerial(0, 1); //RX TX
 
 //Konstanten: Einstellungen
 const int REIHENMENGE = 5;
 const int WARTEZEITBEDINGUNG=5000;
+const int WARTEZEITAMSTART=15000;
 
 //Status Variablen
 boolean IstFahrt = true;
 boolean IstBedient = false;
 boolean IstWarten=false;
 boolean IstHindernis=false;
-boolean IstFernbedingung=false;
+boolean IstFahrtZurueck=false;
 
 //Werte Variablen
 int ReedVal= 0;
@@ -59,18 +57,10 @@ Motoren_Aus();
 //Serial Setup
 Serial.begin(9600);
 
-//Bluetooth empfang starten
-//MeinSerial.begin(9600);
-
 }
 
 void loop() {
 //******    Sensoren Auswertung    ******
-/* char testchar='5';
-int testnummer = testchar - '0';
-Serial.println("Test convert: " + String(testchar) + " : " + String(testnummer)); */
-
-
 
 //** Reed Sensor
 ReedVal = digitalRead (REED_IN);
@@ -123,9 +113,9 @@ else
 
   
   
-  if (!IstFernbedingung)
+  if (!IstFahrtZurueck)
   {  
-    //** Aktion: Fahrt: Schritt Fahrt in die nächste Reihe
+  //** Aktion: Fahrt: Schritt Fahrt in die nächste Reihe
   //** Priorität: 3
     if (IstFahrt)
     {
@@ -158,7 +148,7 @@ else
       {
        Serial.println("Warten Ende");
        IstWarten=false;
-       if (Reihenzaehler <= REIHENMENGE){  
+       if (Reihenzaehler < REIHENMENGE){  
        IstFahrt=true;
        while (digitalRead (REED_IN)==1)
        {
@@ -168,34 +158,19 @@ else
        }
        else
        {
-         IstFernbedingung=true;
-         IstWarten=true;
+         IstFahrtZurueck=true;
+         IstWarten=false;
+         IstFahrt=false;
        }
       }
     }
   }
   else
   {
-    if(IstWarten)
-    {
-      char inChar;
-      Serial.println("Ferbedingung: Warten");
-     /*  if (MeinSerial.available() > 0) 
-      {
-        inChar = (char)MeinSerial.read();
-        Zielreihe=inChar;
-
-        IstWarten=false;
-        Serial.println("BluetoothZahl: " + String(inChar) + " : " + String(Zielreihe));
-        delay(3000);
-      } */
-     
-    }
-    else
-    {
-      Serial.println("Ferbedingung: Fahren");
-      Serial.println("BluetoothZahl: "  + String(Zielreihe));
-    }
+     //** Aktion: Fahrt Zurück: zur Start-Reihe
+     //** Priorität: 3
+    Serial.println("Fahrt Zurück Reihe: " + String(Reihenzaehler));
+    
   }
 
 
