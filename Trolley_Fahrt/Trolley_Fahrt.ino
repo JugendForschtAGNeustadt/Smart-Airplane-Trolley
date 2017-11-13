@@ -1,6 +1,6 @@
 //Konstanten: Pins
-const int MOTOR_VL = 10;
-const int MOTOR_VR = 11;
+const int MOTOR_VL = 10; 
+const int MOTOR_VR = 11; 
 const int MOTOR_HL = 12;
 const int MOTOR_HR = 13;
 
@@ -14,13 +14,16 @@ const int HINDERIS_3_TRIG = 2;
 const int HINDERIS_3_ECHO = 3;
 
 //Konstanten: Einstellungen
-const int REIHENMENGE = 10;
+const int REIHENMENGE = 5;
+const int WARTEZEITBEDINGUNG=5000;
+const int WARTEZEITAMSTART=15000;
 
 //Status Variablen
 boolean IstFahrt = true;
 boolean IstBedient = false;
 boolean IstWarten=false;
 boolean IstHindernis=false;
+boolean IstFahrtZurueck=false;
 
 //Werte Variablen
 int ReedVal= 0;
@@ -28,6 +31,7 @@ unsigned long WartenEndeZeit;
 int Reihenzaehler = 0;
 int Hindernis_Entfernung=100;
 int Hindernis_Entfernung2;
+int Zielreihe=REIHENMENGE;
 
 void setup() 
 {
@@ -60,10 +64,10 @@ void loop() {
 
 //** Reed Sensor
 ReedVal = digitalRead (REED_IN);
-Serial.println(ReedVal);
+Serial.println("Reed: " + String(ReedVal));
 
 //** Bedingungssensor
-//IstBedient= (digitalRead(BEDINGUNG_IN)==1);
+IstBedient= (digitalRead(BEDINGUNG_IN)==1);
 
 //** 3 Ultraschalsensoren
 Hindernis_Entfernung = GetDistance (HINDERIS_1_TRIG,HINDERIS_1_ECHO);
@@ -108,49 +112,68 @@ else
 {
 
   
+  
+  if (!IstFahrtZurueck)
+  {  
   //** Aktion: Fahrt: Schritt Fahrt in die nächste Reihe
   //** Priorität: 3
-  if (IstFahrt)
+    if (IstFahrt)
+    {
+      if (ReedVal==0)
+      {
+        Serial.println("Fahrt");
+        Motoren_Vorwaerts();
+      }
+      else
+      {
+        Serial.println("Fahrt Ende");
+        
+        Motoren_Aus();
+        
+        IstFahrt=false;
+        IstWarten=true;
+        WartenEndeZeit=millis()+WARTEZEITBEDINGUNG;
+        Reihenzaehler++;
+      }
+      
+    }
+  
+  
+    //** Aktion: Warten: 10 Sekunden fürs Selbstbedingung
+    //** Priorität: 3
+    if (IstWarten)
+    {
+      Serial.println("Warten, Reihe: " + String(Reihenzaehler));
+      if (WartenEndeZeit <= millis())
+      {
+       Serial.println("Warten Ende");
+       IstWarten=false;
+       if (Reihenzaehler < REIHENMENGE){  
+       IstFahrt=true;
+       while (digitalRead (REED_IN)==1)
+       {
+        Motoren_Vorwaerts(); 
+       }
+        Motoren_Aus();
+       }
+       else
+       {
+         IstFahrtZurueck=true;
+         IstWarten=false;
+         IstFahrt=false;
+       }
+      }
+    }
+  }
+  else
   {
-    if (ReedVal==0)
-    {
-      Serial.println("Fahrt");
-      Motoren_Vorwaerts();
-    }
-    else
-    {
-      Serial.println("Fahrt Ende");
-      
-      Motoren_Aus();
-      
-      IstFahrt=false;
-      IstWarten=true;
-      WartenEndeZeit=millis()+10000;
-      Reihenzaehler++;
-    }
+     //** Aktion: Fahrt Zurück: zur Start-Reihe
+     //** Priorität: 3
+    Serial.println("Fahrt Zurück Reihe: " + String(Reihenzaehler));
     
   }
 
 
-  //** Aktion: Warten: 10 Sekunden fürs Selbstbedingung
-  //** Priorität: 3
-  if (IstWarten)
-  {
-    Serial.println("Warten, Reihe: " + String(Reihenzaehler));
-    if (WartenEndeZeit <= millis())
-    {
-     Serial.println("Warten Ende");
-     IstWarten=false;
-     if (Reihenzaehler <= REIHENMENGE){  
-     IstFahrt=true;
-     while (digitalRead (REED_IN)==1)
-     {
-      Motoren_Vorwaerts(); 
-     }
-      Motoren_Aus();
-     }
-    }
-  }
 }
 
 
