@@ -6,6 +6,8 @@ const int MOTOR_HR = 13;
 
 const int REED_IN = 9;
 const int BEDINGUNG_IN = 8;
+const int STARTTASTE_IN = 14;
+
 const int HINDERIS_1_TRIG = 5;
 const int HINDERIS_1_ECHO = 4;
 const int HINDERIS_2_TRIG = 6;
@@ -19,7 +21,7 @@ const int WARTEZEITBEDINGUNG=5000;
 const int WARTEZEITAMSTART=15000;
 
 //Status Variablen
-boolean IstFahrt = true;
+boolean IstFahrt = false;
 boolean IstBedient = false;
 boolean IstWarten=false;
 boolean IstHindernis=false;
@@ -31,7 +33,7 @@ unsigned long WartenEndeZeit;
 int Reihenzaehler = 0;
 int Hindernis_Entfernung=100;
 int Hindernis_Entfernung2;
-int Zielreihe=REIHENMENGE;
+int Starttaste_out = LOW;
 
 void setup() 
 {
@@ -44,6 +46,8 @@ pinMode (MOTOR_HL,OUTPUT);
 // Pin Setup Sensoren
 pinMode (REED_IN,INPUT);
 pinMode (BEDINGUNG_IN,INPUT);
+pinMode (STARTTASTE_IN,INPUT);
+
 pinMode (HINDERIS_1_TRIG,OUTPUT);
 pinMode (HINDERIS_1_ECHO,INPUT);
 pinMode (HINDERIS_2_TRIG,OUTPUT);
@@ -61,6 +65,17 @@ Serial.begin(9600);
 
 void loop() {
 //******    Sensoren Auswertung    ******
+//Warten auf Starttaste
+if(!IstFahrt && !IstFahrtZurueck && !IstWarten)
+{
+  while(Starttaste_out == LOW) 
+  {
+    Starttaste_out == digitalRead (STARTTASTE_IN);
+    delay(10);
+  }
+  Reed_Raus(true);
+  IstFahrt = true;
+}
 
 //** Reed Sensor
 ReedVal = digitalRead (REED_IN);
@@ -149,12 +164,8 @@ else
        Serial.println("Warten Ende");
        IstWarten=false;
        if (Reihenzaehler < REIHENMENGE){  
-       IstFahrt=true;
-       while (digitalRead (REED_IN)==1)
-       {
-        Motoren_Vorwaerts(); 
-       }
-        Motoren_Aus();
+        IstFahrt=true;
+        Reed_Raus(true);
        }
        else
        {
@@ -169,10 +180,30 @@ else
   {
      //** Aktion: Fahrt Zurück: zur Start-Reihe
      //** Priorität: 3
-    Serial.println("Fahrt Zurück Reihe: " + String(Reihenzaehler));
+      if (ReedVal==0)
+      {
+        Serial.println("Fahrt Zurück Reihe: " + String(Reihenzaehler));
+        Motoren_Rueckwaerts();
+      }
+      else
+      {
+        Reihenzaehler--;
+        if (Reihenzaehler == 0)
+        {
+          Serial.println("Fahrt Zurück Fertig");
+          IstFahrtZurueck = false;
+          IstWarten = false;
+          IstFahrt = false;
+          Motoren_Aus();
+        }
+       else
+       {
+         Reed_Raus(false);
+       } 
+      }
+      
     
   }
-
 
 }
 
@@ -207,6 +238,25 @@ void Motoren_Rueckwaerts()
  digitalWrite (MOTOR_VR,HIGH);
  digitalWrite (MOTOR_VL,HIGH);
 }
+
+//Fahren aus Reed Sensor mit Rauschfilter
+void Reed_Raus(boolean parVorwaerts)
+{
+  unsigned long debounceDelay = 50;
+  unsigned long lastDebounceTime = millis();
+
+  while ((millis() - lastDebounceTime) < debounceDelay)
+  {
+    if (parVorwaerts)
+      Motoren_Vorwaerts();
+    else
+      Motoren_Rueckwaerts();
+    if (digitalRead (REED_IN)==1)
+      lastDebounceTime = millis();
+  }
+Motoren_Aus();
+}
+
 
 //** Hilfsfunction: GetDistance - Ultraschalsensor Auslesen und die Entfernung in cm Ermitteln
 int GetDistance(int trigPin, int echoPin)
