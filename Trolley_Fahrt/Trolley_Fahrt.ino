@@ -1,3 +1,8 @@
+//***********************************************************
+//** Smart Airplane Trolley - Automatisiertes Fahren
+//** Arduino Programm: Trolley_Fahrt.ino
+//***********************************************************
+
 //Konstanten: Pins
 const int MOTOR_VL = 10; 
 const int MOTOR_VR = 11; 
@@ -14,19 +19,16 @@ const int HINDERIS_2_TRIG = 6;
 const int HINDERIS_2_ECHO = 7;
 const int HINDERIS_3_TRIG = 2;
 const int HINDERIS_3_ECHO = 3;
-
 //Konstanten: Einstellungen
 const int REIHENMENGE = 2;
 const int WARTEZEITBEDINGUNG=10000;
-
-//Status Variablen
+//Status-Variablen
 boolean IstFahrt = false;
 boolean IstBedient = false;
 boolean IstWarten=false;
 boolean IstHindernis=false;
 boolean IstFahrtZurueck=false;
-
-//Werte Variablen
+//Werte-Variablen
 int ReedVal= 0;
 unsigned long WartenEndeZeit;
 int Reihenzaehler = 0;
@@ -36,13 +38,13 @@ int Starttaste_out = 0;
 
 void setup() 
 {
-  //Pin Setup Motoren
+  //Pin-Setup: Motoren
 pinMode (MOTOR_VR,OUTPUT);
 pinMode (MOTOR_VL,OUTPUT);
 pinMode (MOTOR_HR,OUTPUT);
 pinMode (MOTOR_HL,OUTPUT);
 
-// Pin Setup Sensoren
+// Pin-Setup: Sensoren
 pinMode (REED_IN,INPUT);
 pinMode (BEDINGUNG_IN,INPUT);
 
@@ -53,20 +55,19 @@ pinMode (HINDERIS_2_ECHO,INPUT);
 pinMode (HINDERIS_3_TRIG,OUTPUT);
 pinMode (HINDERIS_3_ECHO,INPUT);
 
-// Motoren Ausschalten 
-Motoren_Aus();
-
 //Serial Setup
 Serial.begin(9600);
 
+// Motoren am Anfang ausschalten 
+Motoren_Aus();
 }
 
 void loop() {
 //******    Sensoren Auswertung    ******
-//Warten auf Starttaste
+//** Start/Reset Taste
 Starttaste_out = analogRead(analogInPin);
 if(!IstFahrt && !IstFahrtZurueck && !IstWarten)
-{
+{  //Warten auf Start-Taste
   while(Starttaste_out < 100) 
   {
     Starttaste_out = analogRead(analogInPin);
@@ -79,7 +80,7 @@ if(!IstFahrt && !IstFahrtZurueck && !IstWarten)
 }
 else
 {
-  //Reset-Taste während des Fahrts
+  //Reset-Taste während der Fahrt
      if (Starttaste_out>100)
      {
           Serial.println("Reset!!!");
@@ -90,7 +91,6 @@ else
           delay(1000);
       }
 }
-
 
 //** Reed Sensor
 ReedVal = digitalRead (REED_IN);
@@ -113,10 +113,7 @@ if (Hindernis_Entfernung < 50)
   IstHindernis = true;
 }
 
-
-
 //******    Aktionen    ******
-
 //** Aktion: Bedingung
 //** Priorität: 1
 if (IstBedient)
@@ -141,11 +138,10 @@ else if (IstHindernis)
 else 
 {
 
-  
-  
+
   if (!IstFahrtZurueck)
   {  
-  //** Aktion: Fahrt: Schritt Fahrt in die nächste Reihe
+  //** Aktion: Fahrt: Schritt-Fahrt in die nächste Reihe
   //** Priorität: 3
     if (IstFahrt)
     {
@@ -169,7 +165,11 @@ else
     }
   
   
-    //** Aktion: Warten: 10 Sekunden fürs Selbstbedingung
+  
+  
+  
+  
+    //** Aktion: Warten: 10 Sekunden für die Selbstbedingung
     //** Priorität: 3
     if (IstWarten)
     {
@@ -196,7 +196,7 @@ else
   }
   else
   {
-     //** Aktion: Fahrt Zurück: zur Start-Reihe
+     //** Aktion: Rückfahrt: Zurück zur Start-Reihe
      //** Priorität: 3
       if (ReedVal==0)
       {
@@ -224,12 +224,10 @@ else
   }
 
 }
-
-
 }
 
-//**Hilfsfunktionen für Motoren
-
+//******    Hilfsfunktionen    ******
+//** Hilfsfunktionen für die Motoren
 void Motoren_Aus()
 {
 digitalWrite (MOTOR_VR,HIGH);
@@ -257,7 +255,7 @@ void Motoren_Rueckwaerts()
  digitalWrite (MOTOR_VL,HIGH);
 }
 
-//Fahren aus Reed Sensor mit Rauschfilter
+//** Hilfsfunktion: Ausfahren aus dem Reed Sensor mit dem Rauschfilter
 void Reed_Raus(boolean parVorwaerts)
 {
   unsigned long debounceDelay = 500;
@@ -266,9 +264,6 @@ void Reed_Raus(boolean parVorwaerts)
   while ((millis() - lastDebounceTime) < debounceDelay)
   {
     int iReed=digitalRead (REED_IN)==1;
-   
-      
-      
     if (parVorwaerts)
     {
       Serial.println("Reed Raus Vorwärts, Schon ms: " + String((millis() - lastDebounceTime)) + " Reed Wert: " + String(iReed));
@@ -288,7 +283,7 @@ Motoren_Aus();
 }
 
 
-//** Hilfsfunction: GetDistance - Ultraschalsensor Auslesen und die Entfernung in cm Ermitteln
+//** Hilfsfunktion: GetDistance - Ultraschallsensor auslesen und die Entfernung in cm ermitteln
 int GetDistance(int trigPin, int echoPin)
 {  
     long duration;
