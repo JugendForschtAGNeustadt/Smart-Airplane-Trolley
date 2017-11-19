@@ -79,7 +79,7 @@ if(!IstFahrt && !IstFahrtZurueck && !IstWarten)
 }
 else
 {
-  
+  //Reset-Taste während des Fahrts
      if (Starttaste_out>100)
      {
           Serial.println("Reset!!!");
