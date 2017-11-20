@@ -1,3 +1,8 @@
+//***********************************************************
+//** Smart Airplane Trolley - Automatisiertes Fahren
+//** Arduino Programm: Trolley_Fahrt.ino
+//***********************************************************
+
 //Konstanten: Pins
 const int MOTOR_VL = 10; 
 const int MOTOR_VR = 11; 
@@ -6,44 +11,43 @@ const int MOTOR_HR = 13;
 
 const int REED_IN = 9;
 const int BEDINGUNG_IN = 8;
+const int analogInPin = A0;
+
 const int HINDERIS_1_TRIG = 5;
 const int HINDERIS_1_ECHO = 4;
 const int HINDERIS_2_TRIG = 6;
 const int HINDERIS_2_ECHO = 7;
 const int HINDERIS_3_TRIG = 2;
 const int HINDERIS_3_ECHO = 3;
-
 //Konstanten: Einstellungen
-const int REIHENMENGE = 5;
-const int WARTEZEITBEDINGUNG=5000;
-const int WARTEZEITAMSTART=15000;
-
-//Status Variablen
-boolean IstFahrt = true;
+const int REIHENMENGE = 2;
+const int WARTEZEITBEDINGUNG=10000;
+//Status-Variablen
+boolean IstFahrt = false;
 boolean IstBedient = false;
 boolean IstWarten=false;
 boolean IstHindernis=false;
 boolean IstFahrtZurueck=false;
-
-//Werte Variablen
+//Werte-Variablen
 int ReedVal= 0;
 unsigned long WartenEndeZeit;
 int Reihenzaehler = 0;
 int Hindernis_Entfernung=100;
 int Hindernis_Entfernung2;
-int Zielreihe=REIHENMENGE;
+int Starttaste_out = 0;
 
 void setup() 
 {
-  //Pin Setup Motoren
+  //Pin-Setup: Motoren
 pinMode (MOTOR_VR,OUTPUT);
 pinMode (MOTOR_VL,OUTPUT);
 pinMode (MOTOR_HR,OUTPUT);
 pinMode (MOTOR_HL,OUTPUT);
 
-// Pin Setup Sensoren
+// Pin-Setup: Sensoren
 pinMode (REED_IN,INPUT);
 pinMode (BEDINGUNG_IN,INPUT);
+
 pinMode (HINDERIS_1_TRIG,OUTPUT);
 pinMode (HINDERIS_1_ECHO,INPUT);
 pinMode (HINDERIS_2_TRIG,OUTPUT);
@@ -51,16 +55,42 @@ pinMode (HINDERIS_2_ECHO,INPUT);
 pinMode (HINDERIS_3_TRIG,OUTPUT);
 pinMode (HINDERIS_3_ECHO,INPUT);
 
-// Motoren Ausschalten 
-Motoren_Aus();
-
 //Serial Setup
 Serial.begin(9600);
 
+// Motoren am Anfang ausschalten 
+Motoren_Aus();
 }
 
 void loop() {
 //******    Sensoren Auswertung    ******
+//** Start/Reset Taste
+Starttaste_out = analogRead(analogInPin);
+if(!IstFahrt && !IstFahrtZurueck && !IstWarten)
+{  //Warten auf Start-Taste
+  while(Starttaste_out < 100) 
+  {
+    Starttaste_out = analogRead(analogInPin);
+    Serial.println("Warten auf Reset: " + String(Starttaste_out));
+    delay(10);
+  }
+  delay(200);
+  Reed_Raus(true);
+  IstFahrt = true;
+}
+else
+{
+  //Reset-Taste während der Fahrt
+     if (Starttaste_out>100)
+     {
+          Serial.println("Reset!!!");
+          IstFahrtZurueck = false;
+          IstWarten = false;
+          IstFahrt = false;
+          Motoren_Aus();
+          delay(1000);
+      }
+}
 
 //** Reed Sensor
 ReedVal = digitalRead (REED_IN);
@@ -78,15 +108,12 @@ Hindernis_Entfernung2 = GetDistance (HINDERIS_3_TRIG,HINDERIS_3_ECHO);
 if (Hindernis_Entfernung > Hindernis_Entfernung2)
   Hindernis_Entfernung = Hindernis_Entfernung2;
   
-if (Hindernis_Entfernung < 20)
+if (Hindernis_Entfernung < 50)
 {
   IstHindernis = true;
 }
 
-
-
 //******    Aktionen    ******
-
 //** Aktion: Bedingung
 //** Priorität: 1
 if (IstBedient)
@@ -103,7 +130,7 @@ else if (IstHindernis)
 {  
   Serial.println("Hindernis: " + String(Hindernis_Entfernung));
   Motoren_Aus();
-  if (Hindernis_Entfernung > 30)
+  if (Hindernis_Entfernung > 80)
   {
     IstHindernis = false;
   }
@@ -111,17 +138,16 @@ else if (IstHindernis)
 else 
 {
 
-  
-  
+
   if (!IstFahrtZurueck)
   {  
-  //** Aktion: Fahrt: Schritt Fahrt in die nächste Reihe
+  //** Aktion: Fahrt: Schritt-Fahrt in die nächste Reihe
   //** Priorität: 3
     if (IstFahrt)
     {
       if (ReedVal==0)
       {
-        Serial.println("Fahrt");
+        Serial.println("Fahrt, Reihe: " + String(Reihenzaehler));
         Motoren_Vorwaerts();
       }
       else
@@ -139,48 +165,69 @@ else
     }
   
   
-    //** Aktion: Warten: 10 Sekunden fürs Selbstbedingung
+  
+  
+  
+  
+    //** Aktion: Warten: 10 Sekunden für die Selbstbedingung
     //** Priorität: 3
     if (IstWarten)
     {
       Serial.println("Warten, Reihe: " + String(Reihenzaehler));
+      Motoren_Aus();
       if (WartenEndeZeit <= millis())
       {
        Serial.println("Warten Ende");
        IstWarten=false;
        if (Reihenzaehler < REIHENMENGE){  
-       IstFahrt=true;
-       while (digitalRead (REED_IN)==1)
-       {
-        Motoren_Vorwaerts(); 
-       }
-        Motoren_Aus();
+        IstFahrt=true;
+        Reed_Raus(true);
        }
        else
        {
          IstFahrtZurueck=true;
          IstWarten=false;
          IstFahrt=false;
+          Serial.println("Starte Fahrt Zurück");
+          Reed_Raus(false);
        }
       }
     }
   }
   else
   {
-     //** Aktion: Fahrt Zurück: zur Start-Reihe
+     //** Aktion: Rückfahrt: Zurück zur Start-Reihe
      //** Priorität: 3
-    Serial.println("Fahrt Zurück Reihe: " + String(Reihenzaehler));
+      if (ReedVal==0)
+      {
+        Serial.println("Fahrt Zurück Reihe: " + String(Reihenzaehler));
+        Motoren_Rueckwaerts();
+      }
+      else
+      {
+        Reihenzaehler--;
+        if (Reihenzaehler == 0)
+        {
+          Serial.println("Fahrt Zurück Fertig");
+          IstFahrtZurueck = false;
+          IstWarten = false;
+          IstFahrt = false;
+          Motoren_Aus();
+        }
+       else
+       {
+         Reed_Raus(false);
+       } 
+      }
+      
     
   }
 
-
+}
 }
 
-
-}
-
-//**Hilfsfunktionen für Motoren
-
+//******    Hilfsfunktionen    ******
+//** Hilfsfunktionen für die Motoren
 void Motoren_Aus()
 {
 digitalWrite (MOTOR_VR,HIGH);
@@ -208,7 +255,35 @@ void Motoren_Rueckwaerts()
  digitalWrite (MOTOR_VL,HIGH);
 }
 
-//** Hilfsfunction: GetDistance - Ultraschalsensor Auslesen und die Entfernung in cm Ermitteln
+//** Hilfsfunktion: Ausfahren aus dem Reed Sensor mit dem Rauschfilter
+void Reed_Raus(boolean parVorwaerts)
+{
+  unsigned long debounceDelay = 500;
+  unsigned long lastDebounceTime = millis();
+
+  while ((millis() - lastDebounceTime) < debounceDelay)
+  {
+    int iReed=digitalRead (REED_IN)==1;
+    if (parVorwaerts)
+    {
+      Serial.println("Reed Raus Vorwärts, Schon ms: " + String((millis() - lastDebounceTime)) + " Reed Wert: " + String(iReed));
+
+      Motoren_Vorwaerts();
+    }
+    else
+    {
+       Serial.println("Reed Raus Rückwärts, Schon ms: " + String((millis() - lastDebounceTime)) + " Reed Wert: " + String(iReed));
+
+      Motoren_Rueckwaerts();
+    }
+    if (iReed==1)
+      lastDebounceTime = millis();
+  }
+Motoren_Aus();
+}
+
+
+//** Hilfsfunktion: GetDistance - Ultraschallsensor auslesen und die Entfernung in cm ermitteln
 int GetDistance(int trigPin, int echoPin)
 {  
     long duration;
