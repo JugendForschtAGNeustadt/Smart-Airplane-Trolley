@@ -263,7 +263,7 @@ void Reed_Raus(boolean parVorwaerts)
 
   while ((millis() - lastDebounceTime) < debounceDelay)
   {
-    int iReed=digitalRead (REED_IN)==1;
+    int iReed=digitalRead (REED_IN);
     if (parVorwaerts)
     {
       Serial.println("Reed Raus Vorwärts, Schon ms: " + String((millis() - lastDebounceTime)) + " Reed Wert: " + String(iReed));
